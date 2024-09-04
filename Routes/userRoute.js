@@ -3,7 +3,7 @@ import authenticate from "../Middleware/auth.js";
 import { course } from "./adminRoute.js";
 const userRoute=Router();
 const cart=new Map();
-userRoute.post('/addCart', authenticate, async (req, res) => {
+userRoute.put('/addCart', authenticate, async (req, res) => {
 
     const UserRole = req.userrole;
     const UserName = req.username;
@@ -12,7 +12,7 @@ userRoute.post('/addCart', authenticate, async (req, res) => {
 
     try {
         if (UserRole == 'user'||UserRole=='admin') {
-            const { CourseName } = req.body;
+            const  {CourseName}  = req.body;
             console.log(CourseName);
 
             const courseDetails = course.get(CourseName);
@@ -78,28 +78,28 @@ userRoute.get('/buyCart', authenticate, async (req, res) => {
     const data = cart.get(UserName);
     console.log(data);
     let total = 0;
-    let Price, Quantity,BookName;
+    let Price,CourseName;
     data.forEach(x=>{
-        BookName=x.BookName;
+        CourseName=x.CourseName;
         Price=x.Price;
-        Quantity=x.Quantity;
-        total+=(Price*Quantity);
-        const data=book.get(BookName);
-        data.Copies-=Quantity;
-        console.log(data);
         
-        book.set(BookName,data);
+        total+=Price;
+        
     })
     
     console.log(total);
+    cart.delete(UserName);
     res.send(total.toString())
 }
     catch{
         res.status(500).json({message:"Check Details"});
     }
    
+})
 
-
+userRoute.post('/logout',(req,res)=>{
+    res.clearCookie('authToken'); // 'authToken' is the cookie name
+    res.status(200).json({ message: 'Logout successful' });
 })
 
 export default userRoute;

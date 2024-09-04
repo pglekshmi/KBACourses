@@ -143,5 +143,10 @@ adminRoute.post('/addCourse' ,authenticate,(req, res) => {
     }
 })
 
+adminRoute.post('/logout',(req,res)=>{
+    res.clearCookie('authToken'); // 'authToken' is the cookie name
+    res.status(200).json({ message: 'Logout successful' });
+})
+
 
 export {adminRoute,course};

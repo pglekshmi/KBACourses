@@ -7,11 +7,11 @@ dotenv.config();
 
 
 const adminRoute = Router();
-const user=new Map();
-const course=new Map();
-const secret_key=process.env.Secret_Key;
+const user = new Map();
+const course = new Map();
+const secret_key = process.env.Secret_Key;
 
-adminRoute.get('/',(req,res)=>{
+adminRoute.get('/', function (req, res) {
     res.send("Hello World");
 })
 
@@ -77,18 +77,18 @@ adminRoute.post('/login', async (req, res) => {
     }
 })
 
-adminRoute.post('/addCourse' ,authenticate,(req, res) => {
-   const user=req.userrole;
-   
+adminRoute.post('/addCourse', authenticate, (req, res) => {
+    const user = req.userrole;
 
-    const { CourseName, CourseId, CourseType, Description,Price } = req.body;
-  
+
+    const { CourseName, CourseId, CourseType, Description, Price } = req.body;
+
     try {
 
         if (user == "admin") {
             try {
                 if (course.get(CourseName)) {
-                    res.status(400).json({ message: "Book already present" })
+                    res.status(400).json({ message: "Course already present" })
                 }
                 else {
                     course.set(CourseName, {
@@ -98,7 +98,7 @@ adminRoute.post('/addCourse' ,authenticate,(req, res) => {
                         Price: Price
                     })
 
-                    res.status(201).json({ message: "Book Details Uploaded" });
+                    res.status(201).json({ message: "Course Details Uploaded" });
                     console.log(course.get(CourseName));
 
                 }
@@ -123,7 +123,7 @@ adminRoute.post('/addCourse' ,authenticate,(req, res) => {
 })
 
 // adminRoute.get('/getCourse/:name', async (req, res) => {
-    adminRoute.get('/getCourse', async (req, res) => {
+adminRoute.get('/getCourse', async (req, res) => {
     try {
         // const search = req.params.name.toUpperCase();
         // console.log(search);
@@ -131,11 +131,11 @@ adminRoute.post('/addCourse' ,authenticate,(req, res) => {
         console.log(search);
         const result = course.get(search)
         if (result) {
-            
+
             res.send(result);
         }
-        else{
-        res.json({message:"No course found,Check the name"})
+        else {
+            res.json({ message: "No course found,Check the name" })
         }
     }
     catch (error) {
@@ -143,10 +143,72 @@ adminRoute.post('/addCourse' ,authenticate,(req, res) => {
     }
 })
 
-adminRoute.post('/logout',(req,res)=>{
+adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
+    const user = req.userrole;
+
+
+    const { CourseName, CourseId, CourseType, Description, Price } = req.body;
+
+    try {
+
+        if (user == "admin") {
+            try {
+                let data = course.get(CourseName);
+                if(data){
+                    course.set(CourseName, {
+                        CourseId: CourseId,
+                        CourseType: CourseType,
+                        Description: Description,
+                        Price: Price
+                    });
+
+                }
+                else {
+                    res.status(400).json({ message: "No such course" })
+                }
+               
+
+                    res.status(201).json({ message: "Course Details Updated" });
+                    console.log(course.get(CourseName));
+
+                }
+            
+
+            catch (error) {
+                res.status(400).json({ message: "Check the Course Details" });
+
+            }
+        }
+
+        else {
+            res.status(400).json({ message: "Unauthorized Access" })
+        }
+    }
+
+
+    catch (error) {
+        res.status(401).json({ message: "Check Course details" });
+
+    }
+
+})
+
+adminRoute.delete('/deleteCourse',authenticate,(req,res)=>{
+    const user = req.userrole;
+
+    if(user=="admin"){
+    const {courseName}=req.body;
+    console.log(courseName);
+    
+    course.delete(courseName);
+    res.status(200).json({"message":"Course deleted"})
+}
+})
+
+adminRoute.post('/logout', (req, res) => {
     res.clearCookie('authToken'); // 'authToken' is the cookie name
     res.status(200).json({ message: 'Logout successful' });
 })
 
 
-export {adminRoute,course};
+export { adminRoute, course };

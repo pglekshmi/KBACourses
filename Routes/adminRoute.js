@@ -143,6 +143,15 @@ adminRoute.get('/getCourse', async (req, res) => {
     }
 })
 
+adminRoute.get('/viewCourse',async(req,res)=>{
+    try{
+        res.send(Array.from(course.entries()))
+    }
+    catch{
+        res.status(404).json({message:"Internal error"})
+    }
+})
+
 adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
     const user = req.userrole;
 

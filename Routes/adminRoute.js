@@ -11,15 +11,20 @@ const user = new Map();
 const course = new Map();
 const secret_key = process.env.Secret_Key;
 
-adminRoute.get('/', function (req, res) {
-    res.send("Hello World");
-})
+// adminRoute.get('/', function (req, res) {
+//     // res.send("Hello World");
+//     res.status(400).send("Hello World")
+// })
 
 adminRoute.post('/signup', async (req, res) => {
-    try {
+    try{
         const data = req.body;
-        console.log(data);
+        console.log("body", data);
+        
+        console.log(data.FirstNam);
+
         const { FirstName, LastName, UserName, Password, UserRole } = req.body;
+        // const data1= JSON.parse(data);
         console.log(UserName);
         const newPassword = await bcrypt.hash(Password, 10)
 
@@ -65,10 +70,10 @@ adminRoute.post('/login', async (req, res) => {
                 res.cookie('authToken', token, {
                     httpOnly: true
                 });
-                res.send(token);
+                res.status(200).json({token});
             }
             else {
-                res.send("Invalid Password");
+                res.status(400).json({message:"Invalid Password"});
             }
         }
     }
@@ -76,7 +81,14 @@ adminRoute.post('/login', async (req, res) => {
         res.status(500).json(error);
     }
 })
-
+adminRoute.get('/viewUser',authenticate,(req,res)=>{
+    try{
+    const user=req.userrole;
+    res.json({user});}
+    catch{
+        res.status(404).json({message:'user not authorized'});
+    }
+})
 adminRoute.post('/addCourse', authenticate, (req, res) => {
     const user = req.userrole;
 
@@ -95,7 +107,7 @@ adminRoute.post('/addCourse', authenticate, (req, res) => {
                         CourseId: CourseId,
                         CourseType: CourseType,
                         Description: Description,
-                        Price: Price
+                        Price: parseInt(Price)
                     })
 
                     res.status(201).json({ message: "Course Details Uploaded" });
@@ -135,7 +147,7 @@ adminRoute.get('/getCourse', async (req, res) => {
             res.send(result);
         }
         else {
-            res.json({ message: "No course found,Check the name" })
+            res.status(404).json({ message: "No course found,Check the name" })
         }
     }
     catch (error) {
@@ -143,20 +155,28 @@ adminRoute.get('/getCourse', async (req, res) => {
     }
 })
 
-adminRoute.get('/viewCourse',async(req,res)=>{
-    try{
-        res.send(Array.from(course.entries()))
-    }
-    catch{
-        res.status(404).json({message:"Internal error"})
-    }
-})
+// adminRoute.get('/viewCourse', async(req,res)=>{
+//     try{
+//         console.log(course.size);
+
+//         if(course.size!=0){
+           
+            
+//         res.send(Array.from(course.entries()))
+//     }
+// else{
+//     res.status(404).json({message:'Not Found'});
+// }}
+//     catch{
+//         res.status(404).json({message:"Internal error"})
+//     }
+// })
 
 adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
     const user = req.userrole;
 
 
-    const { CourseName, CourseId, CourseType, Description, Price } = req.body;
+    const { CourseName, Description, Price } = req.body;
 
     try {
 
@@ -165,10 +185,8 @@ adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
                 let data = course.get(CourseName);
                 if(data){
                     course.set(CourseName, {
-                        CourseId: CourseId,
-                        CourseType: CourseType,
                         Description: Description,
-                        Price: Price
+                        Price: parseInt(Price)
                     });
 
                 }
@@ -202,19 +220,29 @@ adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
 
 })
 
-adminRoute.delete('/deleteCourse',authenticate,(req,res)=>{
+adminRoute.delete('/deleteCourse/:name',authenticate,(req,res)=>{
     const user = req.userrole;
-
+    try{
     if(user=="admin"){
-    const {courseName}=req.body;
+    const courseName=req.params.name.toUpperCase();
     console.log(courseName);
+    const data = course.get(courseName);
+    if(data){
+        course.delete(courseName);
+        res.status(200).json({"message":"Course deleted"})
+    }
+    else{
+        res.status(400).json({message:"Course not found"});
+    }
     
-    course.delete(courseName);
-    res.status(200).json({"message":"Course deleted"})
+   
+}}
+catch{
+    res.status(404).json({message:'Unauthorized acess'})
 }
 })
 
-adminRoute.post('/logout', (req, res) => {
+adminRoute.get('/logout', (req, res) => {
     res.clearCookie('authToken'); // 'authToken' is the cookie name
     res.status(200).json({ message: 'Logout successful' });
 })

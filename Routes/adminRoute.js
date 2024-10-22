@@ -176,7 +176,7 @@ adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
     const user = req.userrole;
 
 
-    const { CourseName, Description, Price } = req.body;
+    const {  CourseName, CourseId, CourseType, Description, Price } = req.body;
 
     try {
 
@@ -185,6 +185,8 @@ adminRoute.patch('/updateCourse',authenticate,(req,res)=>{
                 let data = course.get(CourseName);
                 if(data){
                     course.set(CourseName, {
+                        CourseId: CourseId,
+                        CourseType: CourseType,
                         Description: Description,
                         Price: parseInt(Price)
                     });
